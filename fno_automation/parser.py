@@ -2,7 +2,7 @@ import re
 
 def parse_message(text):
     """
-    Parses messy Telegram text to extract trade parameters.
+    Parses noisy market stream text to extract trade parameters.
     Returns a dictionary with parsed data or None if not a valid trade alert.
     """
     if not text:

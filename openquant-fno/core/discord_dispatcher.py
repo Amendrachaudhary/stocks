@@ -300,7 +300,7 @@ class DiscordDispatcher:
                 },
                 {
                     "name": "📈 System Status",
-                    "value": f"• Telethon Ingestion: `Active`\n"
+                    "value": f"• Market Ingestion Stream: `Active`\n"
                              f"• Daily Report: `Delivered (16:00 IST)`",
                     "inline": True
                 }
@@ -323,7 +323,7 @@ class DiscordDispatcher:
         source_title: Optional[str] = None
     ) -> bool:
         """
-        Parses Telegram alerts into clean, professional, institutional trading cards.
+        Parses market ingestion stream alerts into clean, professional, institutional trading cards.
         Extracts structured parameters without printing raw chatter or emoji quotes.
         """
         import re
@@ -568,7 +568,7 @@ class DiscordDispatcher:
     async def send_simple_target_message(self, content: str) -> bool:
         """
         Dispatches a clean, simple, lightweight update message for target numbers / SL changes
-        exactly like the Telegram group drops them.
+        matching upstream telemetry format.
         """
         payload = {
             "username": "OpenQuant F&O Engine",

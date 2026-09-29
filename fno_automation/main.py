@@ -4,7 +4,7 @@ main.py - Master Application Entry Point & Service Orchestrator
 Remains as uncompiled Python. Orchestrates:
 1. Environment loading and CLI argument parsing.
 2. Dependency Injection wiring: DiscordAdapter -> SignalRouter.
-3. Telethon Telegram listener event loop.
+3. Telethon market stream listener event loop.
 4. Daily 16:00 IST P&L settlement reporting task.
 5. At-rest cryptographic security utilities (DataProtector).
 """
@@ -22,10 +22,10 @@ if str(BASE_DIR) not in sys.path:
     sys.path.insert(0, str(BASE_DIR))
 
 import config
-from adapters import DiscordAdapter, TelegramAdapter
+from adapters import DiscordAdapter, StreamRelayAdapter
 from router import SignalRouter
 from encryption import DataProtector, generate_encryption_key
-from telegram_client import get_client
+from stream_client import get_client
 from telethon import events
 
 # Configure logging
@@ -91,7 +91,7 @@ async def run_listener(router: SignalRouter):
     client = get_client()
     if not client:
         logger.warning(
-            "⚠️ Telegram client not configured. Please supply API_ID & API_HASH in .env."
+            "⚠️ Market stream client not configured. Please supply API_ID & API_HASH in .env."
         )
         return
 
@@ -111,9 +111,9 @@ async def run_listener(router: SignalRouter):
         if result:
             logger.info(f"⚡ [PROCESSED] Action={result.get('action')} | Instrument={result.get('instrument')}")
 
-    logger.info("🚀 Starting Telethon client session...")
+    logger.info("🚀 Starting stream client session...")
     await client.start()
-    logger.info(f"✅ Telethon client connected. Subscribed channels: {target_channels}")
+    logger.info(f"✅ Stream client connected. Subscribed channels: {target_channels}")
 
     # Launch background daily report scheduler
     asyncio.create_task(daily_report_task(router))

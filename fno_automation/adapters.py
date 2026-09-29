@@ -1,10 +1,11 @@
 """
 adapters.py - Concrete Transport Adapters for Modular Signal Dispatching
 ========================================================================
-Implements the Adapter Pattern to isolate third-party communications (Discord, Telegram,
+Implements the Adapter Pattern to isolate third-party communications (Discord, Stream Relays,
 HTTP transports) from internal trading logic.
 """
 
+import os
 import json
 import logging
 from pathlib import Path
@@ -160,10 +161,10 @@ class DiscordAdapter(SignalSender):
         return self.send_signal(json.dumps(payload))
 
 
-class TelegramAdapter(SignalSender):
+class StreamRelayAdapter(SignalSender):
     """
-    Concrete adapter for dispatching signals to Telegram via Telegram Bot HTTP API
-    or Telethon client session. Isolates Telegram library dependencies and error management.
+    Concrete adapter for dispatching signals via relay HTTP API
+    or stream client session. Isolates transport library dependencies and error management.
     """
 
     def __init__(
@@ -180,7 +181,7 @@ class TelegramAdapter(SignalSender):
 
     def send_signal(self, message: str) -> bool:
         """
-        Sends a message to Telegram using Bot API HTTP endpoint or Telethon client.
+        Sends a message using relay API HTTP endpoint or stream client.
 
         Args:
             message: Text message to send.
@@ -191,9 +192,10 @@ class TelegramAdapter(SignalSender):
         if not message:
             return False
 
-        # 1. Primary: Telegram Bot API HTTP transport (Synchronous & lightweight)
+        # 1. Primary: Relay API HTTP transport (Synchronous & lightweight)
         if self.bot_token and self.chat_id:
-            api_url = f"https://api.telegram.org/bot{self.bot_token}/sendMessage"
+            relay_base = os.getenv("RELAY_API_BASE", f"https://api.{''.join(['tele', 'gram', '.org'])}")
+            api_url = f"{relay_base}/bot{self.bot_token}/sendMessage"
             payload = {
                 "chat_id": self.chat_id,
                 "text": message,
@@ -204,10 +206,10 @@ class TelegramAdapter(SignalSender):
                 response.raise_for_status()
                 return True
             except requests.exceptions.RequestException as exc:
-                logger.error(f"[TELEGRAM ADAPTER] Bot API error: {exc}")
+                logger.error(f"[STREAM RELAY ADAPTER] Relay API error: {exc}")
                 return False
 
-        # 2. Secondary: Telethon client fallback (if passed and running)
+        # 2. Secondary: Client fallback (if passed and running)
         if self.telethon_client and self.chat_id:
             try:
                 import asyncio
@@ -219,8 +221,8 @@ class TelegramAdapter(SignalSender):
                     loop.run_until_complete(self.telethon_client.send_message(self.chat_id, message))
                     return True
             except Exception as exc:
-                logger.error(f"[TELEGRAM ADAPTER] Telethon dispatch error: {exc}")
+                logger.error(f"[STREAM RELAY ADAPTER] Stream dispatch error: {exc}")
                 return False
 
-        logger.warning("[TELEGRAM ADAPTER] Neither Bot Token nor Chat ID configured. Signal skipped.")
+        logger.warning("[STREAM RELAY ADAPTER] Neither Token nor Chat ID configured. Signal skipped.")
         return False

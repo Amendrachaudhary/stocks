@@ -2,7 +2,7 @@
 encryption.py - Cryptographic Security & At-Rest Data Protection
 ================================================================
 Provides AES-128-CBC with HMAC-SHA256 authenticated symmetric encryption via Fernet.
-Secures local SQLite databases, Telethon session files, and credential caches at rest.
+Secures local SQLite databases, stream session files, and credential caches at rest.
 """
 
 import os

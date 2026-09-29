@@ -5,7 +5,7 @@
 *.key
 *.pem
 
-# Telethon & Session State
+# Stream Client Session State
 *.session
 *.session-journal
 fno_session.session

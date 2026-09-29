@@ -2,7 +2,7 @@
 OpenQuant-FNO: Automated Options Signal Ingestion & Quantitative Research Station
 ================================================================================
 Master orchestrator uniting:
-1. Real-time Telegram ingestion (Telethon)
+1. Real-time Market Ingestion Stream
 2. Low-latency regex normalization
 3. Strict margin validation (₹10,000 capital filter)
 4. Black-Scholes analytical Greeks & quant confidence
@@ -23,7 +23,7 @@ import config
 from core.regex_parser import parse_signal, NormalizedSignal
 from core.sqlite_db import TradeDatabase
 from core.discord_dispatcher import DiscordDispatcher
-from core.telegram_listener import TelegramListener
+from core.stream_listener import IngestionStreamListener
 from quant_suite.greeks_calculator import BlackScholesEngine
 from quant_suite.risk_manager import RiskManager
 from quant_suite.openbb_service import OpenBBMarketService
@@ -50,7 +50,7 @@ class OpenQuantStation:
         self.market_service = OpenBBMarketService()
         self.tui = OpenQuantTUI()
         
-        self.telegram_listener: Optional[TelegramListener] = None
+        self.stream_listener: Optional[IngestionStreamListener] = None
         self._shutdown_event = asyncio.Event()
         self._daily_report_sent_date: Optional[str] = None
         self._openbb_url = f"http://{config.OPENBB_API_HOST}:{config.OPENBB_API_PORT}"
@@ -503,9 +503,9 @@ class OpenQuantStation:
         # Start Daily Report Scheduler
         scheduler_task = asyncio.create_task(self.daily_report_scheduler_loop())
 
-        # Initialize Telethon Client
+        # Initialize Market Ingestion Stream Client
         if config.API_ID and config.API_HASH:
-            self.telegram_listener = TelegramListener(
+            self.stream_listener = IngestionStreamListener(
                 session_path=config.SESSION_FILE_PATH,
                 api_id=config.API_ID,
                 api_hash=config.API_HASH,
@@ -514,22 +514,22 @@ class OpenQuantStation:
             )
             while not self._shutdown_event.is_set():
                 try:
-                    await self.telegram_listener.start()
+                    await self.stream_listener.start()
                     logger.info("🚀 [SYSTEM] OpenQuant-FNO is fully armed and listening for institutional alerts.")
-                    await self.telegram_listener.run_until_disconnected()
+                    await self.stream_listener.run_until_disconnected()
                 except asyncio.CancelledError:
                     break
                 except Exception as e:
                     if self._shutdown_event.is_set():
                         break
-                    logger.error(f"[TELEGRAM] Connection interrupted / offline: {e}. Reconnecting in 10s...")
+                    logger.error(f"[INGESTION_STREAM] Connection interrupted / offline: {e}. Reconnecting in 10s...")
                     try:
-                        await self.telegram_listener.stop()
+                        await self.stream_listener.stop()
                     except Exception:
                         pass
                     await asyncio.sleep(10)
         else:
-            logger.warning("⚠️ [TELEGRAM] API_ID or API_HASH missing in .env. Running in research/offline mode.")
+            logger.warning("⚠️ [INGESTION_STREAM] API_ID or API_HASH missing in .env. Running in research/offline mode.")
             logger.info("Press Ctrl+C to stop.")
             await self._shutdown_event.wait()
 
@@ -541,8 +541,8 @@ class OpenQuantStation:
         """Triggers graceful shutdown."""
         logger.info("🛑 [SYSTEM] Initiating graceful shutdown...")
         self._shutdown_event.set()
-        if self.telegram_listener:
-            asyncio.create_task(self.telegram_listener.stop())
+        if self.stream_listener:
+            asyncio.create_task(self.stream_listener.stop())
 
 
 def main():

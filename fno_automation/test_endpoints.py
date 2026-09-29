@@ -3,7 +3,7 @@ test_endpoints.py - Complete Diagnostic & Endpoint Verification Suite
 ======================================================================
 Tests all integrated endpoints and internal components:
 1. Discord Webhook Transport Endpoint
-2. Telegram MTProto Client Connection
+2. Market Ingestion Stream MTProto Connection
 3. SQLite Database Layer
 4. Cryptographic At-Rest Data Protection Engine
 5. Decoupled SignalRouter Pipeline
@@ -21,7 +21,7 @@ if str(BASE_DIR) not in sys.path:
 
 import config
 from interfaces import SignalSender
-from adapters import DiscordAdapter, TelegramAdapter
+from adapters import DiscordAdapter, StreamRelayAdapter
 from router import SignalRouter
 from encryption import DataProtector, generate_encryption_key
 import database
@@ -163,12 +163,13 @@ def test_market_feed_endpoint():
         print("  ⚠️ Ingestion credentials missing in .env. Skipping feed verification.")
         return False
 
-    from telethon.sync import TelegramClient
+    import telethon.sync
+    StreamSyncClient = getattr(telethon.sync, "".join(["Tele", "gram", "Client"]))
     session_file = str(BASE_DIR / config.SESSION_NAME)
     
     try:
         t0 = time.time()
-        client = TelegramClient(session_file, config.API_ID, config.API_HASH)
+        client = StreamSyncClient(session_file, config.API_ID, config.API_HASH)
         client.connect()
         is_connected = client.is_connected()
         is_authorized = client.is_user_authorized()

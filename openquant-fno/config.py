@@ -40,7 +40,7 @@ else:
     load_dotenv(env_path)
 
 # ------------------------------------------------------------------------------
-# Telegram API Ingestion Settings
+# Market Ingestion Stream Settings
 # ------------------------------------------------------------------------------
 API_ID_RAW = os.getenv("API_ID", "")
 API_ID = int(API_ID_RAW) if API_ID_RAW.strip().isdigit() else None

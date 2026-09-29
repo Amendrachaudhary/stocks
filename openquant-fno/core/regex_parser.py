@@ -2,7 +2,7 @@
 OpenQuant-FNO: Low-Latency Regex Ingestion & Normalizer
 ======================================================
 Pre-compiled, microsecond-optimized regular expressions extracting Indian F&O option
-trade parameters from unstructured, noisy Telegram alerts.
+trade parameters from unstructured, noisy market ingestion alerts.
 """
 
 import re
@@ -183,7 +183,7 @@ def parse_targets(targets_raw: str, entry_price: float = 0.0) -> List[float]:
 
 def parse_signal(text: str, ocr_text: str = "") -> Optional[NormalizedSignal]:
     """
-    Parses an incoming raw Telegram message into a NormalizedSignal.
+    Parses an incoming raw ingestion message into a NormalizedSignal.
     Returns None if the message does not match any actionable trading signal.
     """
     if not text or not isinstance(text, str):

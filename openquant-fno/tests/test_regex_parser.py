@@ -98,7 +98,7 @@ class TestRegexParser(unittest.TestCase):
         slash_targets = parse_targets("240/270/310")
         self.assertEqual(slash_targets, [240.0, 270.0, 310.0])
 
-    def test_insider_traderoom_real_call(self):
+    def test_real_market_call(self):
         text = "Last trade 23700 call @12\nSl 7\nTag 28/35/5/80/120"
         sig = parse_signal(text)
         self.assertIsNotNone(sig)

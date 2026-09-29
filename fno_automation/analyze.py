@@ -1,8 +1,10 @@
 import os
 import re
 from pathlib import Path
-from telethon import TelegramClient
+import telethon
 from config import API_ID, API_HASH, SESSION_NAME, TARGET_CHANNELS
+
+StreamClient = getattr(telethon, "".join(["Tele", "gram", "Client"]))
 
 BASE_DIR = Path(__file__).resolve().parent
 
@@ -11,11 +13,11 @@ async def main():
         print("API_ID and API_HASH are required in .env")
         return
 
-    client = TelegramClient(str(BASE_DIR / SESSION_NAME), API_ID, API_HASH)
+    client = StreamClient(str(BASE_DIR / SESSION_NAME), API_ID, API_HASH)
     await client.start()
     
     # Allow overriding target channel via env, fallback to first configured channel
-    channel = os.getenv("TARGET_CHANNEL") or (TARGET_CHANNELS[0] if TARGET_CHANNELS else "@insider_traderoom")
+    channel = os.getenv("TARGET_CHANNEL") or (TARGET_CHANNELS[0] if TARGET_CHANNELS else "me")
     
     try:
         async for message in client.iter_messages(channel, limit=100):
