@@ -1,0 +1,35 @@
+# Root Gitignore: Secrets, Keys, Databases, Native Binaries, Virtualenv
+.env
+.env.*
+!.env.example
+*.key
+*.pem
+*.session
+*.session-journal
+*.db
+*.sqlite
+*.sqlite3
+
+# Python & Native Build
+__pycache__/
+*.py[cod]
+*$py.class
+*.so
+*.pyd
+*.c
+*.cpp
+build/
+dist/
+*.egg-info/
+.venv/
+venv/
+
+# Logs & Diagnostics
+*.log
+logs/
+*.tmp
+
+# OS & Editor
+.DS_Store
+.vscode/
+.idea/

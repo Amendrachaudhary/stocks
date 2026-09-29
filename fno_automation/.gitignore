@@ -1,0 +1,48 @@
+# Environment & Secret Isolation
+.env
+.env.*
+!.env.example
+*.key
+*.pem
+
+# Telethon & Session State
+*.session
+*.session-journal
+fno_session.session
+
+# SQLite Databases & Local Data Caches
+*.db
+*.sqlite
+*.sqlite3
+fno_trades.db
+
+# Python Bytecode & Cache Directories
+__pycache__/
+*.py[cod]
+*$py.class
+.pytest_cache/
+.coverage
+htmlcov/
+
+# Cython & C-Extension Compilation Artifacts
+*.c
+*.cpp
+*.so
+*.pyd
+*.dylib
+build/
+dist/
+*.egg-info/
+
+# Virtual Environments
+.venv/
+venv/
+ENV/
+env/
+
+# OS / Editor Metadata
+.DS_Store
+.vscode/
+.idea/
+*.swp
+*.tmp

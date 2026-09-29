@@ -1,0 +1,32 @@
+[Unit]
+Description=OpenQuant-FNO Automated Options Signal Ingestion & Quantitative Research Station
+After=network.target network-online.target
+Wants=network-online.target
+
+[Service]
+Type=simple
+User=ubuntu
+Group=ubuntu
+WorkingDirectory=/opt/openquant-fno
+Environment="PATH=/opt/openquant-fno/venv/bin:/usr/local/sbin:/usr/local/bin:/usr/sbin:/usr/bin"
+EnvironmentFile=/opt/openquant-fno/.env
+ExecStart=/opt/openquant-fno/venv/bin/python main.py
+
+# Restart Policies for 24/7 Zero-Downtime Reliability
+Restart=always
+RestartSec=5s
+KillMode=process
+TimeoutStopSec=20s
+
+# Sandboxing & Institutional Resource Controls
+LimitNOFILE=65536
+MemoryMax=2G
+CPUQuota=200%
+
+# Standard Logging via journalctl
+StandardOutput=journal
+StandardError=journal
+SyslogIdentifier=openquant-fno
+
+[Install]
+WantedBy=multi-user.target
