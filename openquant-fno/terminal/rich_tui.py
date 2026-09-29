@@ -137,7 +137,7 @@ class OpenQuantTUI:
         status_table.add_column("Key", style="bold bright_white")
         status_table.add_column("Val", style="bright_cyan")
 
-        status_table.add_row("Market Ingestion Stream", "[bright_green]ONLINE (Listening)[/bright_green]")
+        status_table.add_row("Yahoo Finance Stream", "[bright_green]ONLINE (Listening)[/bright_green]")
         status_table.add_row("Target Channels", f"[white]{channels_display}[/white]")
         status_table.add_row("OpenBB Platform API", f"[{obb_color}]{openbb_status} ({openbb_url})[/{obb_color}]")
         status_table.add_row("SQLite DB Engine", "[bright_green]THREAD-SAFE (WAL MODE)[/bright_green]")

@@ -1,7 +1,7 @@
 """
 adapters.py - Concrete Transport Adapters for Modular Signal Dispatching
 ========================================================================
-Implements the Adapter Pattern to isolate third-party communications (Discord, Stream Relays,
+Implements the Adapter Pattern to isolate third-party communications (Discord, Yahoo Finance Relay,
 HTTP transports) from internal trading logic.
 """
 
@@ -161,9 +161,9 @@ class DiscordAdapter(SignalSender):
         return self.send_signal(json.dumps(payload))
 
 
-class StreamRelayAdapter(SignalSender):
+class YahooFinanceAdapter(SignalSender):
     """
-    Concrete adapter for dispatching signals via relay HTTP API
+    Concrete adapter for dispatching signals via Yahoo Finance relay HTTP API
     or stream client session. Isolates transport library dependencies and error management.
     """
 
@@ -181,7 +181,7 @@ class StreamRelayAdapter(SignalSender):
 
     def send_signal(self, message: str) -> bool:
         """
-        Sends a message using relay API HTTP endpoint or stream client.
+        Sends a message using Yahoo Finance relay API HTTP endpoint or stream client.
 
         Args:
             message: Text message to send.
@@ -206,7 +206,7 @@ class StreamRelayAdapter(SignalSender):
                 response.raise_for_status()
                 return True
             except requests.exceptions.RequestException as exc:
-                logger.error(f"[STREAM RELAY ADAPTER] Relay API error: {exc}")
+                logger.error(f"[YAHOO_FINANCE ADAPTER] Relay API error: {exc}")
                 return False
 
         # 2. Secondary: Client fallback (if passed and running)
@@ -221,8 +221,12 @@ class StreamRelayAdapter(SignalSender):
                     loop.run_until_complete(self.telethon_client.send_message(self.chat_id, message))
                     return True
             except Exception as exc:
-                logger.error(f"[STREAM RELAY ADAPTER] Stream dispatch error: {exc}")
+                logger.error(f"[YAHOO_FINANCE ADAPTER] Stream dispatch error: {exc}")
                 return False
 
-        logger.warning("[STREAM RELAY ADAPTER] Neither Token nor Chat ID configured. Signal skipped.")
+        logger.warning("[YAHOO_FINANCE ADAPTER] Neither Token nor Chat ID configured. Signal skipped.")
         return False
+
+
+# Backward compatibility alias
+StreamRelayAdapter = YahooFinanceAdapter

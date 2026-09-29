@@ -14,13 +14,13 @@ BASE_DIR = Path(__file__).resolve().parent
 # Ensure local .env is loaded reliably regardless of working directory
 load_dotenv(BASE_DIR / ".env")
 
-# --- Market Ingestion Stream Credentials ---
+# --- Yahoo Finance API Ingestion Credentials ---
 _raw_api_id = os.getenv("API_ID", "")
 API_ID = int(_raw_api_id.strip()) if _raw_api_id.strip().isdigit() else None
 API_HASH = os.getenv("API_HASH", "").strip()
 SESSION_NAME = os.getenv("SESSION_NAME", "fno_session").strip()
 
-# Target Ingestion Channels / Feeds
+# Target Yahoo Finance Channels / Feeds
 _channels_str = os.getenv("TARGET_CHANNELS", "")
 TARGET_CHANNELS = []
 for ch in _channels_str.split(","):
@@ -31,9 +31,11 @@ for ch in _channels_str.split(","):
         else:
             TARGET_CHANNELS.append(ch)
 
-# --- Fallback Relay Transport (Optional) ---
-STREAM_RELAY_BOT_TOKEN = os.getenv("STREAM_RELAY_BOT_TOKEN", "").strip()
-STREAM_RELAY_CHAT_ID = os.getenv("STREAM_RELAY_CHAT_ID", "").strip()
+# --- Fallback Yahoo Finance Relay Transport (Optional) ---
+YAHOO_FINANCE_RELAY_TOKEN = os.getenv("YAHOO_FINANCE_RELAY_TOKEN", os.getenv("STREAM_RELAY_BOT_TOKEN", "")).strip()
+YAHOO_FINANCE_RELAY_CHAT_ID = os.getenv("YAHOO_FINANCE_RELAY_CHAT_ID", os.getenv("STREAM_RELAY_CHAT_ID", "")).strip()
+STREAM_RELAY_BOT_TOKEN = YAHOO_FINANCE_RELAY_TOKEN
+STREAM_RELAY_CHAT_ID = YAHOO_FINANCE_RELAY_CHAT_ID
 
 # --- Discord Transport ---
 DISCORD_WEBHOOK_URL = os.getenv("DISCORD_WEBHOOK_URL", "").strip()

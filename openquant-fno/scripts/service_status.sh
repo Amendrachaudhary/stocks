@@ -25,10 +25,10 @@ fi
 RUNNING_PID=$(pgrep -f "openquant-fno/main.py")
 if [ -n "$RUNNING_PID" ]; then
     echo "🟢 Active Process: Running (PID: $RUNNING_PID)"
-    # Check if network connection to Market Ingestion Stream is open
+    # Check if network connection to Yahoo Finance stream is open
     SOCK=$(lsof -i -a -p "$RUNNING_PID" 2>/dev/null | grep -i "established")
     if [ -n "$SOCK" ]; then
-        echo "⚡ Market Ingestion Stream: ESTABLISHED & LISTENING"
+        echo "⚡ Yahoo Finance Stream: ESTABLISHED & LISTENING"
     fi
 else
     echo "🔴 Active Process: Not detected"

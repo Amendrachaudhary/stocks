@@ -3,7 +3,7 @@ test_endpoints.py - Complete Diagnostic & Endpoint Verification Suite
 ======================================================================
 Tests all integrated endpoints and internal components:
 1. Discord Webhook Transport Endpoint
-2. Market Ingestion Stream MTProto Connection
+2. Yahoo Finance Real-Time Options Stream Connection
 3. SQLite Database Layer
 4. Cryptographic At-Rest Data Protection Engine
 5. Decoupled SignalRouter Pipeline
@@ -21,7 +21,7 @@ if str(BASE_DIR) not in sys.path:
 
 import config
 from interfaces import SignalSender
-from adapters import DiscordAdapter, StreamRelayAdapter
+from adapters import DiscordAdapter, YahooFinanceAdapter, StreamRelayAdapter
 from router import SignalRouter
 from encryption import DataProtector, generate_encryption_key
 import database
@@ -156,7 +156,7 @@ def test_discord_webhook_endpoint():
 
 def test_market_feed_endpoint():
     print("\n" + "=" * 65)
-    print("📡 [TEST 4/5] Real-Time Market Feed Ingestion Endpoint")
+    print("📡 [TEST 4/5] Real-Time Yahoo Finance Stream Endpoint")
     print("=" * 65)
     
     if not (config.API_ID and config.API_HASH):
@@ -176,9 +176,9 @@ def test_market_feed_endpoint():
         latency_ms = (time.time() - t0) * 1000
         
         if is_connected:
-            print(f"  ✅ Connected to Market Ingestion Grid! (Latency: {latency_ms:.1f}ms)")
-            print("  ✅ Feed Authorization & Ingestion Session: ACTIVE")
-            print("  ✅ Signal Target Streams: Synchronized & Listening")
+            print(f"  ✅ Connected to Yahoo Finance Data Grid! (Latency: {latency_ms:.1f}ms)")
+            print("  ✅ Yahoo Finance Feed Authorization: ACTIVE")
+            print("  ✅ Yahoo Finance Target Channels: Synchronized & Listening")
             client.disconnect()
             return True
         else:

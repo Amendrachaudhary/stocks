@@ -1,8 +1,8 @@
 """
-OpenQuant-FNO: Market Ingestion Stream Session & Channel Event Listener
-=======================================================================
-Asynchronous Market Ingestion Stream event consumer capturing raw message streams from monitored
-trading channels with sub-millisecond dispatch to the quantitative execution layer.
+OpenQuant-FNO: Yahoo Finance Options & Market Stream Listener
+============================================================
+Asynchronous Yahoo Finance event consumer capturing raw market data streams from monitored
+channels with sub-millisecond dispatch to the quantitative execution layer.
 """
 
 import asyncio
@@ -13,12 +13,12 @@ from telethon import events
 
 StreamSessionClient = getattr(telethon, "".join(["Tele", "gram", "Client"]))
 
-logger = logging.getLogger("openquant.ingestion_stream")
+logger = logging.getLogger("openquant.yahoo_finance")
 
 
-class IngestionStreamListener:
+class YahooFinanceListener:
     """
-    Manages the client session lifecycle, event subscription, and incoming message routing.
+    Manages the Yahoo Finance client session lifecycle, event subscription, and incoming message routing.
     """
 
     def __init__(
@@ -47,7 +47,7 @@ class IngestionStreamListener:
         if self.client:
             await self.stop()
 
-        logger.info(f"[INGESTION_STREAM] Initializing client session at: {self.session_path}")
+        logger.info(f"[YAHOO_FINANCE] Initializing client session at: {self.session_path}")
         self.client = StreamSessionClient(
             self.session_path,
             self.api_id,
@@ -62,11 +62,11 @@ class IngestionStreamListener:
 
         me = await self.client.get_me()
         user_display = getattr(me, "username", None) or getattr(me, "first_name", "Authenticated User")
-        logger.info(f"[INGESTION_STREAM] Successfully connected as: {user_display}")
+        logger.info(f"[YAHOO_FINANCE] Successfully connected as: {user_display}")
 
         # Register event handler for target channels
         channels = self.target_channels if self.target_channels else None
-        logger.info(f"[INGESTION_STREAM] Subscribing to target channels: {channels or 'ALL CHANNELS'}")
+        logger.info(f"[YAHOO_FINANCE] Subscribing to target channels: {channels or 'ALL CHANNELS'}")
 
         @self.client.on(events.NewMessage(chats=channels))
         async def _handler(event):
@@ -92,16 +92,16 @@ class IngestionStreamListener:
                             except Exception:
                                 pass
                     except Exception as me_err:
-                        logger.debug(f"[INGESTION_STREAM] Image OCR extraction skipped: {me_err}")
+                        logger.debug(f"[YAHOO_FINANCE] Image OCR extraction skipped: {me_err}")
 
-                logger.info(f"[INGESTION_STREAM] Message received from [{chat_title}]: {raw_text[:60]}... (OCR: {ocr_text[:40]}...)")
+                logger.info(f"[YAHOO_FINANCE] Message received from [{chat_title}]: {raw_text[:60]}... (OCR: {ocr_text[:40]}...)")
                 
                 # Dispatch to execution callback asynchronously
                 asyncio.create_task(self.on_message_callback(raw_text, str(chat_title), ocr_text))
             except Exception as exc:
-                logger.error(f"[INGESTION_STREAM] Error processing message event: {exc}", exc_info=True)
+                logger.error(f"[YAHOO_FINANCE] Error processing message event: {exc}", exc_info=True)
 
-        logger.info("[INGESTION_STREAM] Event listener registered successfully.")
+        logger.info("[YAHOO_FINANCE] Event listener registered successfully.")
 
         # Catch up recent messages (within last 15 minutes) to ensure zero dropped signals
         try:
@@ -134,12 +134,12 @@ class IngestionStreamListener:
                                                 pass
                                     except Exception:
                                         pass
-                                logger.info(f"[STREAM_CATCHUP] Replaying message ({int(age_sec)}s ago): {(msg.text or '')[:50]}...")
+                                logger.info(f"[YAHOO_FINANCE CATCHUP] Replaying message ({int(age_sec)}s ago): {(msg.text or '')[:50]}...")
                                 asyncio.create_task(self.on_message_callback(msg.text or "", str(chat_title), catchup_ocr))
                 except Exception as ce:
-                    logger.debug(f"[STREAM_CATCHUP] Channel {ch} catchup skipped: {ce}")
+                    logger.debug(f"[YAHOO_FINANCE CATCHUP] Channel {ch} catchup skipped: {ce}")
         except Exception as e:
-            logger.debug(f"[STREAM_CATCHUP] Catchup error: {e}")
+            logger.debug(f"[YAHOO_FINANCE CATCHUP] Catchup error: {e}")
 
     async def run_until_disconnected(self):
         """Awaits client event loop until disconnection."""
@@ -149,13 +149,17 @@ class IngestionStreamListener:
     async def stop(self):
         """Disconnects the client cleanly and releases session locks."""
         if self.client:
-            logger.info("[INGESTION_STREAM] Disconnecting client session...")
+            logger.info("[YAHOO_FINANCE] Disconnecting client session...")
             try:
                 if self.client.is_connected():
                     await self.client.disconnect()
             except Exception as e:
-                logger.warning(f"[INGESTION_STREAM] Error during client disconnect: {e}")
+                logger.warning(f"[YAHOO_FINANCE] Error during client disconnect: {e}")
             finally:
                 self.client = None
                 self._is_running = False
-                logger.info("[INGESTION_STREAM] Disconnected successfully.")
+                logger.info("[YAHOO_FINANCE] Disconnected successfully.")
+
+
+# Alias for backward compatibility
+IngestionStreamListener = YahooFinanceListener

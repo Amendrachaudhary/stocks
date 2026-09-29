@@ -300,7 +300,7 @@ class DiscordDispatcher:
                 },
                 {
                     "name": "📈 System Status",
-                    "value": f"• Market Ingestion Stream: `Active`\n"
+                    "value": f"• Yahoo Finance Stream: `Active`\n"
                              f"• Daily Report: `Delivered (16:00 IST)`",
                     "inline": True
                 }
@@ -323,7 +323,7 @@ class DiscordDispatcher:
         source_title: Optional[str] = None
     ) -> bool:
         """
-        Parses market ingestion stream alerts into clean, professional, institutional trading cards.
+        Parses Yahoo Finance market alerts into clean, professional, institutional trading cards.
         Extracts structured parameters without printing raw chatter or emoji quotes.
         """
         import re

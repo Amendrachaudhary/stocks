@@ -1,6 +1,6 @@
 """
 OpenQuant-FNO: Core Execution Layer
-High-throughput Market Ingestion Stream, regex normalization, SQLite persistence, and Discord telemetry.
+High-throughput Yahoo Finance Market Data Ingestion, regex normalization, SQLite persistence, and Discord telemetry.
 """
 
 from .regex_parser import parse_signal, NormalizedSignal

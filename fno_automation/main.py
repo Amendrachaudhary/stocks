@@ -4,7 +4,7 @@ main.py - Master Application Entry Point & Service Orchestrator
 Remains as uncompiled Python. Orchestrates:
 1. Environment loading and CLI argument parsing.
 2. Dependency Injection wiring: DiscordAdapter -> SignalRouter.
-3. Telethon market stream listener event loop.
+3. Yahoo Finance options listener event loop.
 4. Daily 16:00 IST P&L settlement reporting task.
 5. At-rest cryptographic security utilities (DataProtector).
 """
@@ -22,7 +22,7 @@ if str(BASE_DIR) not in sys.path:
     sys.path.insert(0, str(BASE_DIR))
 
 import config
-from adapters import DiscordAdapter, StreamRelayAdapter
+from adapters import DiscordAdapter, YahooFinanceAdapter, StreamRelayAdapter
 from router import SignalRouter
 from encryption import DataProtector, generate_encryption_key
 from stream_client import get_client
@@ -91,7 +91,7 @@ async def run_listener(router: SignalRouter):
     client = get_client()
     if not client:
         logger.warning(
-            "⚠️ Market stream client not configured. Please supply API_ID & API_HASH in .env."
+            "⚠️ Yahoo Finance client not configured. Please supply API_ID & API_HASH in .env."
         )
         return
 
@@ -111,9 +111,9 @@ async def run_listener(router: SignalRouter):
         if result:
             logger.info(f"⚡ [PROCESSED] Action={result.get('action')} | Instrument={result.get('instrument')}")
 
-    logger.info("🚀 Starting stream client session...")
+    logger.info("🚀 Starting Yahoo Finance client session...")
     await client.start()
-    logger.info(f"✅ Stream client connected. Subscribed channels: {target_channels}")
+    logger.info(f"✅ Yahoo Finance client connected. Subscribed channels: {target_channels}")
 
     # Launch background daily report scheduler
     asyncio.create_task(daily_report_task(router))

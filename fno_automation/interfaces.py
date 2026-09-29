@@ -11,7 +11,7 @@ from abc import ABC, abstractmethod
 class SignalSender(ABC):
     """
     Abstract Base Class defining the contract for message and signal dispatchers.
-    Decouples core trading analytics from third-party transport layers (Discord, stream relays, etc.).
+    Decouples core trading analytics from third-party transport layers (Discord, Yahoo Finance, etc.).
     """
 
     @abstractmethod
