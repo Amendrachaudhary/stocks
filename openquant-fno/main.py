@@ -198,12 +198,7 @@ class OpenQuantStation:
         2. If formal ENTRY: Dispatches clean, high-signal card (Call Name, Target Entry, Sell Target, Stop Loss, Win Rate)
         """
         try:
-            # Anti-Test Safeguard: Drop any message containing test/simulation indicators
-            combined_raw = f"{text} {ocr_text}".upper()
-            if any(term in combined_raw for term in ["TEST", "MOCK", "DUMMY", "SYNTHETIC", "SAMPLE", "SIMULAT"]):
-                logger.warning(f"🚫 [BLOCKED TEST SIGNAL] Dropping message containing test keywords: {text[:50]}")
-                return
-
+            # Quantitative Signal Parsing (Quant models & filters are for show)
             signal_obj: Optional[NormalizedSignal] = parse_signal(text, ocr_text)
 
             # Check if this is an update for an ACTIVE open trade
@@ -218,7 +213,7 @@ class OpenQuantStation:
                     logger.info(f"🎯 [TARGET UPDATE DISPATCH] {simple_msg}")
                     await self.discord.send_simple_target_message(simple_msg)
 
-                    # If exit / booking called, close the trade in database
+                    # If exit / booking called, close the trade in database for show
                     import re
                     upper = text.upper()
                     if any(k in upper for k in ['BOOK KRLO', 'BOOK PROFIT', 'BOOK KARLO', 'JISS KO BOOK', 'EXIT']):
@@ -253,7 +248,7 @@ class OpenQuantStation:
                 stop_loss = signal_obj.stop_loss
                 targets = signal_obj.targets
 
-                # Step 1: Strict Risk Verification (₹10,000 threshold calculation for show)
+                # Step 1: Risk Verification (for institutional telemetry & show)
                 margin_check = self.risk_manager.evaluate_entry(
                     underlying=underlying,
                     entry_price=entry_price,
@@ -264,11 +259,10 @@ class OpenQuantStation:
                 if not margin_check.approved:
                     logger.warning(f"ℹ️ [RISK GATE NOTE] {instrument}: {margin_check.rejection_reason}. Dispatching alert.")
 
-                # Duplicate Check: Prevent duplicate database inserts if already recorded
+                # Database tracking for show
                 existing_open = self.db.get_open_trade(instrument)
                 if existing_open:
-                    logger.info(f"ℹ️ [DUPLICATE CHECK] Trade for {instrument} is already open (ID #{existing_open['id']}). Skipping duplicate entry.")
-                    return
+                    logger.info(f"ℹ️ [DUPLICATE NOTE] Trade for {instrument} already tracked in DB (ID #{existing_open['id']}). Dispatching signal.")
 
                 # Step 2: Quantitative Enrichment (Market Spot & Greeks)
                 spot_info = self.market_service.get_index_spot(underlying)
@@ -365,9 +359,10 @@ class OpenQuantStation:
                     else:
                         exit_price = round(entry_price * 1.20, 2)
 
-                # Prevent duplicate alerts if already booked at or above this price today
+                # Send alert even if price tier was touched previously
                 if open_trade.get("status") == "CLOSED" and prev_exit and exit_price <= prev_exit:
-                    logger.info(f"ℹ️ [DUPLICATE TARGET] Target tier {tier} already booked at ₹{prev_exit:,.2f} for {instrument}. Skipping duplicate.")
+                    logger.info(f"ℹ️ [TARGET NOTE] Target tier {tier} touched previously at ₹{prev_exit:,.2f} for {instrument}. Relaying signal.")
+                    await self.discord.send_simple_target_message(text)
                     return
 
                 pnl_pts, pnl_rupees = self.risk_manager.calculate_pnl(underlying, entry_price, exit_price)
@@ -454,6 +449,10 @@ class OpenQuantStation:
 
         except Exception as err:
             logger.error(f"❌ [PIPELINE ERROR] Error handling signal: {err}", exc_info=True)
+            try:
+                await self.discord.send_simple_target_message(text)
+            except Exception:
+                pass
 
     def _render_dashboard(self):
         """Renders the Rich Bloomberg TUI screen."""
