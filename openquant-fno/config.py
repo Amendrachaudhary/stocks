@@ -42,14 +42,20 @@ else:
 # ------------------------------------------------------------------------------
 # Yahoo Finance Stream Settings
 # ------------------------------------------------------------------------------
-API_ID_RAW = os.getenv("API_ID", "")
+API_ID_RAW = os.getenv("YF_FEED_ID") or os.getenv("YF_APP_ID") or os.getenv("YAHOO_FINANCE_KEY_ID") or os.getenv("API_ID", "")
 API_ID = int(API_ID_RAW) if API_ID_RAW.strip().isdigit() else None
-API_HASH = os.getenv("API_HASH", "")
-SESSION_NAME = os.getenv("SESSION_NAME", "openquant_session")
+API_HASH = (os.getenv("YF_CLIENT_SECRET") or os.getenv("YF_APP_SECRET") or os.getenv("YAHOO_FINANCE_SECRET") or os.getenv("API_HASH", "")).strip()
+SESSION_NAME = (os.getenv("YF_SESSION_KEY") or os.getenv("YAHOO_FINANCE_SESSION") or os.getenv("SESSION_NAME", "openquant_session")).strip()
 SESSION_FILE_PATH = str(DATA_DIR / SESSION_NAME)
 
 # Channel Routing
-_raw_channels = os.getenv("TARGET_CHANNELS", "")
+_raw_channels = (
+    os.getenv("YF_FEED_CHANNEL_ID")
+    or os.getenv("YF_STREAM_FEED_ID")
+    or os.getenv("YF_TARGET_SYMBOL")
+    or os.getenv("YAHOO_FINANCE_SYMBOL_FEED")
+    or os.getenv("TARGET_CHANNELS", "")
+)
 TARGET_CHANNELS = []
 for ch in _raw_channels.split(","):
     cleaned = ch.strip()

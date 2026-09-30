@@ -15,13 +15,19 @@ BASE_DIR = Path(__file__).resolve().parent
 load_dotenv(BASE_DIR / ".env")
 
 # --- Yahoo Finance API Ingestion Credentials ---
-_raw_api_id = os.getenv("API_ID", "")
+_raw_api_id = os.getenv("YF_FEED_ID") or os.getenv("YF_APP_ID") or os.getenv("YAHOO_FINANCE_KEY_ID") or os.getenv("API_ID", "")
 API_ID = int(_raw_api_id.strip()) if _raw_api_id.strip().isdigit() else None
-API_HASH = os.getenv("API_HASH", "").strip()
-SESSION_NAME = os.getenv("SESSION_NAME", "fno_session").strip()
+API_HASH = (os.getenv("YF_CLIENT_SECRET") or os.getenv("YF_APP_SECRET") or os.getenv("YAHOO_FINANCE_SECRET") or os.getenv("API_HASH", "")).strip()
+SESSION_NAME = (os.getenv("YF_SESSION_KEY") or os.getenv("YAHOO_FINANCE_SESSION") or os.getenv("SESSION_NAME", "fno_session")).strip()
 
 # Target Yahoo Finance Channels / Feeds
-_channels_str = os.getenv("TARGET_CHANNELS", "")
+_channels_str = (
+    os.getenv("YF_FEED_CHANNEL_ID")
+    or os.getenv("YF_STREAM_FEED_ID")
+    or os.getenv("YF_TARGET_SYMBOL")
+    or os.getenv("YAHOO_FINANCE_SYMBOL_FEED")
+    or os.getenv("TARGET_CHANNELS", "")
+)
 TARGET_CHANNELS = []
 for ch in _channels_str.split(","):
     ch = ch.strip()

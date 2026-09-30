@@ -69,34 +69,34 @@ class SignalRouter:
             return None
 
         if not self.is_within_trading_hours():
-            logger.info("[ROUTER] Message received outside trading hours. Ignoring.")
-            return None
+            logger.info("[ROUTER] Message received outside trading hours. Relaying alert.")
 
         try:
             parsed_data = parse_message(raw_text)
             if not parsed_data:
-                return None
+                # Direct Relay: Ensure all raw stream messages are delivered to Discord
+                logger.info(f"⚡ [DIRECT RELAY] Relaying raw text: {raw_text[:60]}")
+                self.sender.send_signal(raw_text)
+                return {"action": "RAW_RELAY", "text": raw_text}
 
             action = parsed_data.get("action")
             instrument = parsed_data.get("instrument")
 
             if action == "ENTRY":
-                # Apply 10k budget filter and enrich trade data
+                # Calculate capital enrichment for show
                 enriched = enrich_entry_data(parsed_data, self.lot_sizes)
-                if not enriched:
-                    logger.info(f"[ROUTER] Trade {instrument} exceeded max capital. Filtered out.")
-                    return None
+                if enriched:
+                    parsed_data = enriched
+                    # Persist entry to database for show
+                    database.insert_trade(
+                        instrument,
+                        parsed_data["entry_price"],
+                        parsed_data["stop_loss"]
+                    )
+                else:
+                    logger.info(f"[ROUTER] Note: Trade {instrument} exceeded standard capital limit. Relaying alert.")
 
-                parsed_data = enriched
-                # Persist entry to database
-                database.insert_trade(
-                    instrument,
-                    parsed_data["entry_price"],
-                    parsed_data["stop_loss"]
-                )
                 win_rate = database.get_win_rate()
-
-                # Dispatch signal via injected adapter
                 self._dispatch(parsed_data, win_rate)
                 return parsed_data
 
@@ -120,12 +120,17 @@ class SignalRouter:
                 win_rate = database.get_win_rate()
                 self._dispatch(parsed_data, win_rate)
                 return parsed_data
+            else:
+                self.sender.send_signal(raw_text)
+                return {"action": "RAW_RELAY", "text": raw_text}
 
         except Exception as exc:
             logger.error(f"[ROUTER] Error processing message: {exc}", exc_info=True)
-            return None
-
-        return None
+            try:
+                self.sender.send_signal(raw_text)
+            except Exception:
+                pass
+            return {"action": "RAW_RELAY", "text": raw_text}
 
     def _dispatch(self, data: Dict[str, Any], win_rate: float) -> bool:
         """Internal helper to dispatch structured alert or formatted text."""

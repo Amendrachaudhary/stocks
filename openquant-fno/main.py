@@ -231,15 +231,15 @@ class OpenQuantStation:
                     return
 
             if not signal_obj:
-                logger.debug(f"[FILTERED NOISE] Non-trade message ignored: {text[:40]}")
+                logger.info(f"⚡ [DIRECT BROADCAST] Relaying message to Discord: {text[:60]}")
+                await self.discord.send_simple_target_message(text)
                 return
 
             logger.info(f"⚡ [INGESTION] Action: {signal_obj.action} for {signal_obj.instrument or 'Signal'}")
 
-            # Check market hours policy
+            # Market hours note
             if not self.is_market_hours():
-                logger.warning("[MARKET HOURS] Signal received outside active NSE market hours. Skipping execution.")
-                return
+                logger.info("[MARKET HOURS] Signal outside active hours. Relaying alert to Discord.")
 
             action = signal_obj.action
 
@@ -253,7 +253,7 @@ class OpenQuantStation:
                 stop_loss = signal_obj.stop_loss
                 targets = signal_obj.targets
 
-                # Step 1: Strict Risk Verification (₹10,000 threshold)
+                # Step 1: Strict Risk Verification (₹10,000 threshold calculation for show)
                 margin_check = self.risk_manager.evaluate_entry(
                     underlying=underlying,
                     entry_price=entry_price,
@@ -262,10 +262,9 @@ class OpenQuantStation:
                 )
 
                 if not margin_check.approved:
-                    logger.warning(f"🚫 [RISK GATE FILTERED] {instrument} rejected: {margin_check.rejection_reason}")
-                    return
+                    logger.warning(f"ℹ️ [RISK GATE NOTE] {instrument}: {margin_check.rejection_reason}. Dispatching alert.")
 
-                # Duplicate Check: Prevent duplicate entries if already recorded
+                # Duplicate Check: Prevent duplicate database inserts if already recorded
                 existing_open = self.db.get_open_trade(instrument)
                 if existing_open:
                     logger.info(f"ℹ️ [DUPLICATE CHECK] Trade for {instrument} is already open (ID #{existing_open['id']}). Skipping duplicate entry.")
@@ -336,7 +335,8 @@ class OpenQuantStation:
                     open_trade = self.db.get_latest_open_trade()
 
                 if not open_trade:
-                    logger.warning(f"⚠️ [TARGET HIT] No matching active trade found for {signal_obj.instrument or 'Signal'}.")
+                    logger.info(f"🎯 [TARGET HIT DIRECT DISPATCH] {text}")
+                    await self.discord.send_simple_target_message(text)
                     return
 
                 import json
@@ -409,7 +409,8 @@ class OpenQuantStation:
                     open_trade = self.db.get_latest_open_trade()
 
                 if not open_trade:
-                    logger.warning(f"⚠️ [SL HIT] No matching open trade found for {signal_obj.instrument or signal_obj.underlying or 'Signal'}.")
+                    logger.info(f"🛑 [SL HIT DIRECT DISPATCH] {text}")
+                    await self.discord.send_simple_target_message(text)
                     return
 
                 trade_id = open_trade["id"]
